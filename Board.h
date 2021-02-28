@@ -25,11 +25,14 @@ public:
 	bool movePiece(unsigned short rank1, unsigned short file1, unsigned short rank2, unsigned short file2);
 	std::vector<Piece*> attacked(Square* square);
 	bool validSquare(unsigned short rank, unsigned short file);
-	bool wouldCauseCheck(Piece* piece, Square* dest);
-	std::vector<Piece*> inCheck(Piece* king);
+	bool movPiece(unsigned short rank1, unsigned short file1, unsigned short rank2, unsigned short file2);
+	bool wouldCauseCheck(Square* start, Square* dest);
+	std::vector<Piece*> inCheck(Square* kingSquare);
+	std::vector<Piece*> threats(Square* square, char color);
 	std::vector<Piece*> checkFile(Square* file);
 	std::vector<Piece*> checkRank(Square* rank);
 	std::vector<Piece*> checkDiag(Square* diag);
+	std::vector<Piece*> checkL(Square* l);
 	void printTrace();
 	void printBoard();
 

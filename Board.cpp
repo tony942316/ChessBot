@@ -1210,34 +1210,106 @@ bool ChessBoard::validSquare(unsigned short rank, unsigned short file)
 {
 	if (rank >= 0 && rank < 8 && file >= 0 && file < 8)
 	{
+		//squash.addTrace("validSquare: True");
 		return true;
 	}
 	else
 	{
+		//squash.addTrace("validSquare: False");
 		return false;
 	}
 }
 
-bool ChessBoard::wouldCauseCheck(Piece* piece, Square* dest)
+bool ChessBoard::wouldCauseCheck(Square* start, Square* dest)
 {
-	Piece* king;
+	Piece* piece = start->getPiece();
+	Piece* target = nullptr;
+	Square* kingSquare;
 	if (piece->getColor() == 'W')
 	{
-		king = pWhiteKingSquare->getPiece();
+		kingSquare = pWhiteKingSquare;
 	}
 	else
 	{
-		king = pBlackKingSquare->getPiece();
+		kingSquare = pBlackKingSquare;
 	}
 
+	if (dest->hasPiece())
+	{
+		target = dest->getPiece();
+	}
 
+	start->removePiece();
+	if (target != nullptr)
+	{
+		dest->removePiece();
+	}
+	dest->setPiece(piece);
+	std::vector<Piece*> threats = inCheck(kingSquare);
+	dest->removePiece();
+	start->setPiece(piece);
+	if (target != nullptr)
+	{
+		dest->setPiece(target);
+	}
 
-	return false;
+	if (threats.size() == 0)
+	{
+		squash.addTrace("wouldCauseCheck: False");
+		return false;
+	}
+	else
+	{
+		squash.addTrace("wouldCauseCheck: True");
+		return true;
+	}
 }
 
-std::vector<Piece*> ChessBoard::inCheck(Piece* king)
+std::vector<Piece*> ChessBoard::inCheck(Square* kingSquare)
 {
-	return false;
+	std::vector<Piece*> attackers = threats(kingSquare, kingSquare->getPiece()->getColor());
+	return attackers;
+}
+
+std::vector<Piece*> ChessBoard::threats(Square* square, char color)
+{
+	std::vector<Piece*> threats;
+	threats.reserve(16);
+	std::vector<Piece*> temp;
+	temp = checkFile(square);
+	for (Piece* p : temp)
+	{
+		if (p->getColor() == color)
+		{
+			threats.push_back(p);
+		}
+	}
+	temp = checkRank(square);
+	for (Piece* p : temp)
+	{
+		if (p->getColor() == color)
+		{
+			threats.push_back(p);
+		}
+	}
+	temp = checkDiag(square);
+	for (Piece* p : temp)
+	{
+		if (p->getColor() == color)
+		{
+			threats.push_back(p);
+		}
+	}
+	temp = checkL(square);
+	for (Piece* p : temp)
+	{
+		if (p->getColor() == color)
+		{
+			threats.push_back(p);
+		}
+	}
+
+	return threats;
 }
 
 std::vector<Piece*> ChessBoard::checkFile(Square* file)
@@ -1251,10 +1323,12 @@ std::vector<Piece*> ChessBoard::checkFile(Square* file)
 			Piece* piece = pTiles[i][file->getFile()]->getPiece();
 			if (i == file->getRank() + 1 && piece->getSymbol() == 'K')
 			{
+				squash.addTrace("checkFile: Top King");
 				offenders.push_back(piece);
 			}
 			else if (piece->getSymbol() == 'R' || piece->getSymbol() == 'Q')
 			{
+				squash.addTrace("checkFile: Top Q/R");
 				offenders.push_back(piece);
 			}
 			break;
@@ -1268,10 +1342,12 @@ std::vector<Piece*> ChessBoard::checkFile(Square* file)
 			Piece* piece = pTiles[i][file->getFile()]->getPiece();
 			if (i == file->getRank() - 1 && piece->getSymbol() == 'K')
 			{
+				squash.addTrace("checkFile: Bottom King");
 				offenders.push_back(piece);
 			}
 			else if (piece->getSymbol() == 'R' || piece->getSymbol() == 'Q')
 			{
+				squash.addTrace("checkFile: Bottom Q/R");
 				offenders.push_back(piece);
 			}
 			break;
@@ -1292,10 +1368,12 @@ std::vector<Piece*> ChessBoard::checkRank(Square* rank)
 			Piece* piece = pTiles[rank->getRank()][i]->getPiece();
 			if (i == rank->getRank() + 1 && piece->getSymbol() == 'K')
 			{
+				squash.addTrace("checkRank: Left King");
 				offenders.push_back(piece);
 			}
 			else if (piece->getSymbol() == 'R' || piece->getSymbol() == 'Q')
 			{
+				squash.addTrace("checkRank: Left Q/R");
 				offenders.push_back(piece);
 			}
 			break;
@@ -1309,10 +1387,12 @@ std::vector<Piece*> ChessBoard::checkRank(Square* rank)
 			Piece* piece = pTiles[rank->getRank()][i]->getPiece();
 			if (i == rank->getRank() - 1 && piece->getSymbol() == 'K')
 			{
+				squash.addTrace("checkRank: Right King");
 				offenders.push_back(piece);
 			}
 			else if (piece->getSymbol() == 'R' || piece->getSymbol() == 'Q')
 			{
+				squash.addTrace("chekcRank: Right Q/R");
 				offenders.push_back(piece);
 			}
 			break;
@@ -1326,29 +1406,140 @@ std::vector<Piece*> ChessBoard::checkDiag(Square* diag)
 {
 	std::vector<Piece*> offenders;
 
-	int i = diag->getRank();
-	int j = diag->getFile();
-	while (i < 8)
+	int i = diag->getRank() + 1;
+	int j = diag->getFile() + 1;
+	while (i < 8 && j < 8)
 	{
-		while (j < 8)
+		if (pTiles[i][j]->hasPiece())
 		{
-			if (pTiles[i][j]->hasPiece())
+			Piece* piece = pTiles[i][j]->getPiece();
+			if (i == diag->getRank() + 1 && j == diag->getFile() + 1 && (piece->getSymbol() == 'K' || (piece->getSymbol() == 'P' && piece->getColor() == 'B')))
 			{
-				Piece* piece = pTiles[i][j]->getPiece();
-				if (i == diag->getRank() + 1 && j == diag->getFile() + 1 && piece->getSymbol() == 'K')
-				{
-					offenders.push_back(piece);
-				}
-				else if (piece->getSymbol() == 'B' || piece->getSymbol() == 'Q')
-				{
-					offenders.push_back(piece);
-				}
-				break;
+				squash.addTrace("checkDiag: TL K/P");
+				offenders.push_back(piece);
 			}
-			j++;
+			else if (piece->getSymbol() == 'B' || piece->getSymbol() == 'Q')
+			{
+				squash.addTrace("checkDiag: TL Q/B");
+				offenders.push_back(piece);
+			}
+			break;
 		}
 		i++;
+		j++;
 	}
+
+	i = diag->getRank() + 1;
+	j = diag->getFile() - 1;
+
+	while (i < 8 && j >= 0)
+	{
+		if (pTiles[i][j]->hasPiece())
+		{
+			Piece* piece = pTiles[i][j]->getPiece();
+			if (i == diag->getRank() + 1 && j == diag->getFile() - 1 && (piece->getSymbol() == 'K' || (piece->getSymbol() == 'P' && piece->getColor() == 'B')))
+			{
+				squash.addTrace("checkDiag: TR K/P");
+				offenders.push_back(piece);
+			}
+			else if (piece->getSymbol() == 'B' || piece->getSymbol() == 'Q')
+			{
+				squash.addTrace("checkDiag: TR Q/B");
+				offenders.push_back(piece);
+			}
+			break;
+		}
+		i++;
+		j--;
+	}
+
+	i = diag->getRank() - 1;
+	j = diag->getFile() + 1;
+
+	while (i >= 0 && j < 8)
+	{
+		if (pTiles[i][j]->hasPiece())
+		{
+			Piece* piece = pTiles[i][j]->getPiece();
+			if (i == diag->getRank() - 1 && j == diag->getFile() + 1 && (piece->getSymbol() == 'K' || (piece->getSymbol() == 'P' && piece->getColor() == 'W')))
+			{
+				squash.addTrace("checkDiag: BL K/P");
+				offenders.push_back(piece);
+			}
+			else if (piece->getSymbol() == 'B' || piece->getSymbol() == 'Q')
+			{
+				squash.addTrace("checkDiag: BL Q/B");
+				offenders.push_back(piece);
+			}
+			break;
+		}
+		i--;
+		j++;
+	}
+
+	i = diag->getRank() - 1;
+	j = diag->getFile() - 1;
+
+	while (i >= 0 && j >= 0)
+	{
+		if (pTiles[i][j]->hasPiece())
+		{
+			Piece* piece = pTiles[i][j]->getPiece();
+			if (i == diag->getRank() - 1 && j == diag->getFile() - 1 && (piece->getSymbol() == 'K' || (piece->getSymbol() == 'P' && piece->getColor() == 'W')))
+			{
+				squash.addTrace("checkDiag: BR K/P");
+				offenders.push_back(piece);
+			}
+			else if (piece->getSymbol() == 'B' || piece->getSymbol() == 'Q')
+			{
+				squash.addTrace("checkDiag: BR Q/B");
+				offenders.push_back(piece);
+			}
+			break;
+		}
+		i--;
+		j--;
+	}
+
+	return offenders;
+}
+
+std::vector<Piece*> ChessBoard::checkL(Square* l)
+{
+	std::vector<Piece*> offenders;
+
+	short rankAndFileOps[16] = { 1,  2,
+								-1,  2,
+								 2,  1,
+								 2, -1,
+								 1, -2,
+								-1, -2,
+								-2,  1,
+								-2, -1 };
+
+	unsigned int i = 0;
+	unsigned int curRank = -1;
+	unsigned int curFile = -1;
+	while (i < 16)
+	{
+		curRank = l->getRank() + rankAndFileOps[i];
+		curFile = l->getFile() + rankAndFileOps[i + 1];
+		if (validSquare(curRank, curFile))
+		{
+			if (pTiles[curRank][curFile]->hasPiece())
+			{
+				Piece* offender = pTiles[curRank][curFile]->getPiece();
+				if (offender->getSymbol() == 'N')
+				{
+					squash.addTrace("checkL: N");
+					offenders.push_back(offender);
+				}
+			}
+			i += 2;
+		}
+	}
+
+	return offenders;
 }
 
 void ChessBoard::printTrace()
