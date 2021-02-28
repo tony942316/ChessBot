@@ -10,6 +10,7 @@ unsigned short yTranslation(float y);
 
 int main()
 {
+	//TestMSVS PUsh
 	sf::RenderWindow window(sf::VideoMode(windowWidth, windowHeight), "My window");
 	sf::Texture white;
 	sf::Texture black;
