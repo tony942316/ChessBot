@@ -1,0 +1,18 @@
+﻿  Board.cpp
+C:\C++ Projects(Personal)\ChessBot\ChessBot\Board.cpp(1240,14): error C2440: 'return': cannot convert from 'bool' to 'std::vector<Piece *,std::allocator<Piece *>>'
+C:\C++ Projects(Personal)\ChessBot\ChessBot\Board.cpp(1240,14): message : Constructor for class 'std::vector<Piece *,std::allocator<Piece *>>' is declared 'explicit'
+  Debug.cpp
+  Main.cpp
+C:\C++ Projects(Personal)\ChessBot\ChessBot\Main.cpp(72,56): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\C++ Projects(Personal)\ChessBot\ChessBot\Main.cpp(72,101): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\C++ Projects(Personal)\ChessBot\ChessBot\Main.cpp(75,54): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\C++ Projects(Personal)\ChessBot\ChessBot\Main.cpp(76,54): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\C++ Projects(Personal)\ChessBot\ChessBot\Main.cpp(123,65): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\C++ Projects(Personal)\ChessBot\ChessBot\Main.cpp(123,31): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\C++ Projects(Personal)\ChessBot\ChessBot\Main.cpp(171,11): warning C4244: 'return': conversion from 'float' to 'unsigned short', possible loss of data
+C:\C++ Projects(Personal)\ChessBot\ChessBot\Main.cpp(176,11): warning C4244: 'return': conversion from 'float' to 'unsigned short', possible loss of data
+  Piece.cpp
+  Point.cpp
+  Square.cpp
+  Tests.cpp
+  Generating Code...
